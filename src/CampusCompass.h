@@ -21,11 +21,14 @@ private:
     public:
     struct Class {
         string class_code;
-        string location_id;
-        Class(string code, string location) {
+        int location_id;
+        Class(string code, int location) {
             class_code = code;
             location_id = location;
         }
+        bool operator<(const Class& other) const {
+                return class_code < other.class_code;
+            }
         
     };
     struct Student {
@@ -53,7 +56,7 @@ public:
     CampusCompass(); // constructor
     bool ParseCSV(const string& edges_filepath, const string& classes_filepath);
     bool ParseCommand(const string& command);
-    bool insert(const string& student_name, const string& student_id, const int& residence_location_id, const vector<string> classcodes);
+    bool insert(const string& student_name, const string& student_id, const int& residence_location_id, const vector<Class> classes);
     bool remove(const string& student_id);
     bool dropClass(const string& student_id, const string& classcode);
     bool replaceClass(const string& student_id, const string& classcode_1, const string& classcode_2);

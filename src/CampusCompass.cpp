@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <queue>
+#include <algorithm>
 using namespace std;
 
 CampusCompass::CampusCompass() {
@@ -73,7 +74,7 @@ bool CampusCompass::ParseCSV(const string &edges_filepath, const string &classes
         getline(ss, classcode, ','); // read to the next comma and skip it
         
         getline(ss, location, ',');
-        Class new_class(classcode, location);
+        Class new_class(classcode, stoi(location));
         classes[classcode] = new_class;
 
         } catch (...) {
@@ -90,10 +91,113 @@ bool CampusCompass::ParseCommand(const string &command) {
     // hint: return a boolean for validation when testing. For example:
     bool is_valid = true; // replace with your actual validity checking
 
+
+
+    string cmd; //get first line
+
+    stringstream ss(command);
+    ss >> cmd; // first word before space
+
+    if (cmd == "insert") {
+
+        string name;
+        string student_id;
+        string residence_id;
+        ss >> name;
+        ss >> student_id;
+        ss >> residence_id;
+        string classcode;
+        vector<Class> classcodes;
+        for (ss >> classcode) {
+            Class course(classcode, classes[classcode].location_id);
+            classcodes.push_back(course);
+        }
+        insert(name, student_id, stoi(residence_id), classcodes)
+
+        //insert
+    } 
+    else if (cmd == "remove") {
+        string student_id;
+        ss >> student_id;
+        remove(student_id);
+        //remove
+    } 
+    else if (cmd == "dropClass") {
+        string student_id;
+        string classcode;
+        ss >> student_id;
+        ss >> classcode;
+        dropClass(student_id, classcode);
+        //drop class
+    } 
+    else if (cmd == "replaceClass") {
+        string student_id;
+        string classcode1;
+        string classcode2;
+        ss >> student_id;
+        ss >> classcode1;
+        ss >> classcode2;
+
+        replaceClass(student_id, classcode1, classcode2);
+
+        
+    }
+     else if (cmd == "removeClass") {
+        string classcode;
+        ss >> classcode;
+        removeClass(classcode);
+
+
+    }
+     else if (cmd == "toggleEdgesClosure") {
+        string location_id;
+        vector<int> ids;
+        for (ss >> location_id) {
+            ids.push_back(stoi(location_id));
+        }
+        toggleEdgesClosure(ids);
+
+    }
+     else if (cmd == "checkEdgeStatus") {
+        string location_id_x;
+        string location_id_y;
+        ss >> location_id_x;
+        ss >> location_id_y;
+        checkEdgeStatus(stoi(location_id_x), stoi(location_id_y));
+    }
+     else if (cmd == "isConnected") {
+        string location_id_x;
+        string location_id_y;
+        ss >> location_id_x;
+        ss >> location_id_y;
+        isConnected(stoi(location_id_x), stoi(location_id_y));
+    }
+    else if (cmd == "printShortestEdges") {
+         string student_id;
+        ss >> student_id;
+        printShortestEdges(student_id);
+
+    }
+    else if (cmd == "printStudentZone") {
+        string student_id;
+        ss >> student_id;
+        printStudentZone(student_id);
+    }
+    else if (cmd == "verifySchedule") {
+        string student_id;
+        ss >> student_id;
+        verifySchedule(student_id);
+    }
+    else {
+        return false;
+    }
+
+
+
     return is_valid;
 }
 
-bool CampusCompass::insert(const string &student_name, const string &student_id, const int &residence_location_id, const vector<Class> classes)
+bool CampusCompass::insert(const string &student_name, const string &student_id, const int &residence_location_id, const vector<CampusCompass::Class> classes)
 {
     Student new_student(student_name, student_id, residence_location_id, classes);
     students[student_id] = new_student;
@@ -109,12 +213,13 @@ bool CampusCompass::remove(const string &student_id)
 bool CampusCompass::dropClass(const string &student_id, const string &classcode)
 {
     Student* stu = findStudentById(student_id);
-    auto it = find(stu->classcodes.begin(), stu->classcodes.end(), classcode);
-
-    if (it != stu->classcodes.end()) {
-        stu->classcodes.erase(it);
-        return true;
+    for (auto it = stu->classcodes.begin(); it != stu->classcodes.end(); it++) {
+        if (it->class_code == classcode) {
+            stu->classcodes.erase(it);
+            return true;
+        }
     }
+
     return false;
 }
 
@@ -124,8 +229,8 @@ bool CampusCompass::replaceClass(const string &student_id, const string &classco
  Student* stu = findStudentById(student_id);
 
 for(int i = 0; i < stu->classcodes.size(); i++) {
-    if (stu->classcodes[i] == classcode_1) {
-        stu->classcodes[i] = classcode_2;
+    if (stu->classcodes[i].class_code == classcode_1) {
+        stu->classcodes[i].class_code = classcode_2;
         return true;
     }
 }
@@ -137,7 +242,7 @@ int CampusCompass::removeClass(const string &classcode)
     classes.erase(classcode);
     for (auto s : students) {
         for (int i = 0; i < s.second.classcodes.size(); i++) {
-            if (s.second.classcodes[i] == classcode) {
+            if (s.second.classcodes[i].class_code == classcode) {
                 s.second.classcodes.erase(s.second.classcodes.begin() + i);
                 break;
             }
@@ -183,24 +288,99 @@ string CampusCompass::checkEdgeStatus(const int &location_id_x, const int &locat
 
 bool CampusCompass::isConnected(const int &location_id_x, const int &location_id_y)
 {
+    if (location_id_x == location_id_y) {
+        return true;
+    }
+    set<int> visited;
+    queue<int> q;
+    q.push(location_id_x);
+    visited.insert(location_id_x);
+
+    while (!q.empty()) {
+        int u = q.front();
+        
+        q.pop();
+      for (auto& p : graph[u]) {
+        int v = p.first;
+            if (closed_edges.count({u, v})) {
+               continue;
+            }
+            if (v == location_id_y) {
+                return true;
+            }
+            if (visited.count(v) == 0) {
+
+                visited.insert(v);
+                q.push(v);
+            }
+        }
+
+    }
+    return false;
+
     //BFS, if match end and say true
     //Find if theres a path between 2 locations
-    return false;
 }
 
 string CampusCompass::printShortestEdges(const string &student_id)
 {
     //Good ol Dijkstras for all classes from residence hall starting point
+
     Student* stu = findStudentById(student_id);
-    for(auto course : stu->classcodes)
+    if (!stu) {
+        return "";
+    }
+    int start = stu->residence_location_id;
+    string result = "Name:" + stu->student_name + "\n";
+
     unordered_map<int, int> dist;
     unordered_map<int, int> prev;
     priority_queue<pair<int,int>, vector<pair<int,int>>, greater<pair<int,int>>> pq;
 
+    for (auto &g : graph) {
+        dist[g.first] = INT_MAX;
+    }
+    dist[start] = 0;
+    pq.push({0, start});
+
+   
 
     
-    return string();
+    
+    while (!pq.empty()) {
+        auto [d, u] = pq.top();
+        pq.pop();
+
+        if (d > dist[u]) {
+            continue;
+        }
+        for (auto [v, weight] : graph[u]) {
+            if (closed_edges.count({u, v})) {
+                continue;
+            }
+
+            if (dist[u] + weight < dist[v]) {
+                dist[v] = dist[u] + weight;
+                prev[v] = u;
+                pq.push({dist[v], v});
+            }
+        }
+    }
+
+    vector<Class> sortedClasses = stu->classcodes;
+    sort(sortedClasses.begin(), sortedClasses.end());
+
+    for (auto& c : sortedClasses) {
+        int loc = c.location_id;
+        int time = dist[loc];
+        result += c.class_code + "| Total Time:" + to_string(time) + "\n";
+    }
+
+    return result;
+
 }
+    
+
 
 string CampusCompass::printStudentZone(const string &student_id)
 {

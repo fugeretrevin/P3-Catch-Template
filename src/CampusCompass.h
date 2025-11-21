@@ -19,19 +19,6 @@ private:
 
     //key: from "A", value: to <("B", 2), ("C", 3)>
     public:
-    struct Student {
-        string student_name;
-        string student_id;
-        int residence_location_id;
-        vector<string> classcodes;
-        Student(string name, string id, int residence_location_id, vector<string> classcodes) {
-            student_name = name;
-            student_id = id;
-            this->residence_location_id = residence_location_id;
-            this->classcodes = classcodes;
-        }
-    };
-
     struct Class {
         string class_code;
         string location_id;
@@ -41,6 +28,20 @@ private:
         }
         
     };
+    struct Student {
+        string student_name;
+        string student_id;
+        int residence_location_id;
+        vector<Class> classcodes;
+        Student(string name, string id, int residence_location_id, vector<Class> classes) {
+            student_name = name;
+            student_id = id;
+            this->residence_location_id = residence_location_id;
+            this->classcodes = classcodes;
+        }
+    };
+
+    
     private:
 
     unordered_map<string, Student> students;

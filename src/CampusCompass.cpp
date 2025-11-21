@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <queue>
 using namespace std;
 
 CampusCompass::CampusCompass() {
@@ -92,9 +93,9 @@ bool CampusCompass::ParseCommand(const string &command) {
     return is_valid;
 }
 
-bool CampusCompass::insert(const string &student_name, const string &student_id, const int &residence_location_id, const vector<string> classcodes)
+bool CampusCompass::insert(const string &student_name, const string &student_id, const int &residence_location_id, const vector<Class> classes)
 {
-    Student new_student(student_name, student_id, residence_location_id, classcodes);
+    Student new_student(student_name, student_id, residence_location_id, classes);
     students[student_id] = new_student;
     return true;
 }
@@ -182,13 +183,20 @@ string CampusCompass::checkEdgeStatus(const int &location_id_x, const int &locat
 
 bool CampusCompass::isConnected(const int &location_id_x, const int &location_id_y)
 {
+    //BFS, if match end and say true
     //Find if theres a path between 2 locations
     return false;
 }
 
 string CampusCompass::printShortestEdges(const string &student_id)
 {
-    //Dijkstras for all classes from residence hall
+    //Good ol Dijkstras for all classes from residence hall starting point
+    Student* stu = findStudentById(student_id);
+    for(auto course : stu->classcodes)
+    unordered_map<int, int> dist;
+    unordered_map<int, int> prev;
+    priority_queue<pair<int,int>, vector<pair<int,int>>, greater<pair<int,int>>> pq;
+
 
     
     return string();

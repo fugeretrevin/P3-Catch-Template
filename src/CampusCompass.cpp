@@ -6,6 +6,7 @@
 #include <sstream>
 #include <queue>
 #include <algorithm>
+#include <climits>
 using namespace std;
 
 CampusCompass::CampusCompass() {
@@ -52,7 +53,6 @@ bool CampusCompass::ParseCSV(const string &edges_filepath, const string &classes
 
     //Classes Next
     ifstream classes_file(classes_filepath);
-    string line;
     if(!classes_file.is_open()) {
       return false;
     }
@@ -106,13 +106,19 @@ bool CampusCompass::ParseCommand(const string &command) {
         ss >> name;
         ss >> student_id;
         ss >> residence_id;
-        string classcode;
-        vector<Class> classcodes;
-        for (ss >> classcode) {
-            Class course(classcode, classes[classcode].location_id);
-            classcodes.push_back(course);
+        if (name.empty() || student_id.empty() || residence_id.empty()) {
+            return false;
         }
-        insert(name, student_id, stoi(residence_id), classcodes)
+        string classcode;
+        vector<CampusCompass::Class> student_classes;
+        while (ss >> classcode) {
+            auto iter_find = this->classes.find(classcode);
+            if (iter_find == this->classes.end()) {
+                return false;
+            }
+            student_classes.push_back(iter_find->second);
+        }
+        insert(name, student_id, stoi(residence_id), student_classes);
 
         //insert
     } 
@@ -152,7 +158,7 @@ bool CampusCompass::ParseCommand(const string &command) {
      else if (cmd == "toggleEdgesClosure") {
         string location_id;
         vector<int> ids;
-        for (ss >> location_id) {
+        while (ss >> location_id) {
             ids.push_back(stoi(location_id));
         }
         toggleEdgesClosure(ids);
@@ -197,9 +203,9 @@ bool CampusCompass::ParseCommand(const string &command) {
     return is_valid;
 }
 
-bool CampusCompass::insert(const string &student_name, const string &student_id, const int &residence_location_id, const vector<CampusCompass::Class> classes)
+bool CampusCompass::insert(const string &student_name, const string &student_id, const int &residence_location_id, const vector<CampusCompass::Class> student_classes)
 {
-    Student new_student(student_name, student_id, residence_location_id, classes);
+    Student new_student(student_name, student_id, residence_location_id, student_classes);
     students[student_id] = new_student;
     return true;
 }
@@ -213,9 +219,12 @@ bool CampusCompass::remove(const string &student_id)
 bool CampusCompass::dropClass(const string &student_id, const string &classcode)
 {
     Student* stu = findStudentById(student_id);
-    for (auto it = stu->classcodes.begin(); it != stu->classcodes.end(); it++) {
+    if (!stu) {
+            return false;
+        }
+    for (auto it = stu->classes.begin(); it != stu->classes.end(); it++) {
         if (it->class_code == classcode) {
-            stu->classcodes.erase(it);
+            stu->classes.erase(it);
             return true;
         }
     }
@@ -227,10 +236,19 @@ bool CampusCompass::replaceClass(const string &student_id, const string &classco
 {
     
  Student* stu = findStudentById(student_id);
-
-for(int i = 0; i < stu->classcodes.size(); i++) {
-    if (stu->classcodes[i].class_code == classcode_1) {
-        stu->classcodes[i].class_code = classcode_2;
+if (!stu) {
+    return false;
+}
+auto iter_find = classes.find(classcode_2);
+//If new class doesnt exist
+if (iter_find == classes.end()) {
+    return false;
+}
+int replacement_id = iter_find->second.location_id;
+for(int i = 0; i < stu->classes.size(); i++) {
+    if (stu->classes[i].class_code == classcode_1) {
+        stu->classes[i].class_code = classcode_2;
+        stu->classes[i].location_id = replacement_id;
         return true;
     }
 }
@@ -240,16 +258,18 @@ for(int i = 0; i < stu->classcodes.size(); i++) {
 int CampusCompass::removeClass(const string &classcode)
 {
     classes.erase(classcode);
-    for (auto s : students) {
-        for (int i = 0; i < s.second.classcodes.size(); i++) {
-            if (s.second.classcodes[i].class_code == classcode) {
-                s.second.classcodes.erase(s.second.classcodes.begin() + i);
-                break;
+    int students_affected = 0;
+    for (auto& s : students) {
+        for (int i = 0; i < s.second.classes.size(); i++) {
+            if (s.second.classes[i].class_code == classcode) {
+                s.second.classes.erase(s.second.classes.begin() + i);
+                students_affected++;
+                i--;
             }
         }
     }
     //Remove from all students
-    return 0;
+    return students_affected;
 }
 
 bool CampusCompass::toggleEdgesClosure(const vector<int> edges) 
@@ -367,13 +387,22 @@ string CampusCompass::printShortestEdges(const string &student_id)
         }
     }
 
-    vector<Class> sortedClasses = stu->classcodes;
+    vector<Class> sortedClasses = stu->classes;
     sort(sortedClasses.begin(), sortedClasses.end());
 
     for (auto& c : sortedClasses) {
         int loc = c.location_id;
-        int time = dist[loc];
+        int time = INT_MAX;
+        if (dist.count(loc)) {
+            time = dist[loc];
+        }
+        if (time == INT_MAX) {
+        result += c.class_code + "| Unreachable" + "\n";
+        }
+        else {
         result += c.class_code + "| Total Time:" + to_string(time) + "\n";
+
+        }
     }
 
     return result;
@@ -384,10 +413,69 @@ string CampusCompass::printShortestEdges(const string &student_id)
 
 string CampusCompass::printStudentZone(const string &student_id)
 {
+    Student* stu = findStudentById(student_id);
+    if (!stu || stu->classes.empty()) {
+        return "Student not found/no classes";
+    }
 
-    //MST
+    set<int> locations;
+    locations.insert(stu->residence_location_id);
+    for (auto& c : stu->classes) {
+        locations.insert(c.location_id);
+    }
+    if (locations.size() <= 1) {
+        return "Student Zone Cost For" + stu->student_name + ": 0";
+    }
+    priority_queue<pair<int,int>, vector<pair<int,int>>, greater<pair<int,int>>> pq;
+    unordered_map<int, int> min_weight;
+    set<int> in_zone;
+    int total_weight = 0;
+    for (int l : locations) {
+        min_weight[l] = INT_MAX;
+    }
+    int start_node = stu->residence_location_id;
+    min_weight[start_node] = 0;
+    pq.push({0, start_node});
+    while (!pq.empty()) {
+        auto [w, u] = pq.top();
+        pq.pop();
+        if (in_zone.count(u)) {
+            continue;
+        }
+        if (w != min_weight[u]) {
+            continue;
+        }
+        
 
-    return string();
+        in_zone.insert(u);
+        total_weight += w;
+        if (in_zone.size() == locations.size()) {
+            break;
+        }
+        if (graph.count(u)) {
+            for (auto [v, weight] : graph.at(u)) {
+                if (locations.count(v) && !in_zone.count(v)) {
+                    if (closed_edges.count({u, v})) {
+                        continue;
+                    }
+                    if (weight < min_weight[v]) {
+                        min_weight[v] = weight;
+                        pq.push({weight, v});
+                    }
+
+                }
+            }
+        }
+    }
+    if (in_zone.size() < locations.size()) {
+        return "Student Zone Cost For" + stu->student_name + ": disconnected";
+
+    }
+        string result = "Student Zone Cost For" + stu->student_name + ":" + to_string(total_weight);
+    return result;
+
+    //MST, Prims
+
 }
 
 CampusCompass::Student* CampusCompass::findStudentById(const string &id) {
@@ -399,7 +487,11 @@ CampusCompass::Student* CampusCompass::findStudentById(const string &id) {
 }
 
 bool CampusCompass::edgeExists(const int& x, const int& y) {
-    for (auto& p : graph[x]) {
+    auto iter = graph.find(x);
+    if (iter == graph.end()) {
+        return false;
+    }
+    for (auto& p : iter->second) {
         if (p.first == y)  {
             return true;
         }
@@ -407,10 +499,77 @@ bool CampusCompass::edgeExists(const int& x, const int& y) {
     return false;
 }
 
+int CampusCompass::getShortestTime(const int &start_loc, const int &end_loc)
+{
+    if (start_loc == end_loc) {
+        return 0;
+    }
+    priority_queue<pair<int,int>, vector<pair<int,int>>, greater<pair<int,int>>> pq;
+    unordered_map<int,int> dist;
+    for (auto& [id, adj] : graph) {
+        dist[id] = INT_MAX;
+    }
+    dist[start_loc] = 0;
+    dist[end_loc] = INT_MAX;
+    pq.push({0, start_loc});
 
-//EXTRA CREDIT
+    while (!pq.empty()) {
+        auto [d, u] = pq.top();
+        pq.pop();
+        if (u == end_loc) {
+            return d;
+        }
+        if (d > dist[u]) {
+            continue;
+        }
+        if (graph.count(u)) {
+            for (auto [v, weight] : graph.at(u)) {
+                if (closed_edges.count({u, v})) {
+                    continue;
+                }
+                if (dist.count(v) && dist[u] != INT_MAX && dist[u] + weight < dist[v]) {
+                    dist[v] = dist[u] + weight;
+                    pq.push({dist[v], v});
+                }
+            }
+        }
+    }
+    return INT_MAX;
+}
+
+// EXTRA CREDIT
 string CampusCompass::verifySchedule(const string &student_id)
 {
-    return string();
+    Student* stu = findStudentById(student_id);
+        if (!stu || stu->classes.size() <= 1) {
+            return "unsuccessful";
+        }
+    vector<Class> schedule = stu->classes;
+    sort(schedule.begin(), schedule.end());
+       
+        int max_commute = 15;
+        string result = "Schedule Check for" + stu->student_name;
+
+        bool verified = true;
+
+        for (int i = 0; i < schedule.size() - 1; i++) {
+            int start_loc = schedule[i].location_id;
+            int end_loc = schedule[i+1].location_id;
+            string trip_desc = schedule[i].class_code + " - " + schedule[i+1].class_code;
+            string status_message;
+            int travel_time = getShortestTime(start_loc, end_loc);
+            if (travel_time == INT_MAX) {
+                status_message = "Unreachable";
+            }
+            else if (travel_time <= max_commute) {
+                status_message = "Can make it!";
+            }
+            else {
+                status_message = "Cannot make it!";
+            }
+            result += trip_desc + " " + status_message + "\n";
+        }
+    
+    return result;
 }
 

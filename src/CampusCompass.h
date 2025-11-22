@@ -35,12 +35,12 @@ private:
         string student_name;
         string student_id;
         int residence_location_id;
-        vector<Class> classcodes;
+        vector<Class> classes;
         Student(string name, string id, int residence_location_id, vector<Class> classes) {
             student_name = name;
             student_id = id;
             this->residence_location_id = residence_location_id;
-            this->classcodes = classcodes;
+            this->classes = classes;
         }
     };
 
@@ -71,6 +71,7 @@ public:
 
     
     //EXTRA CREDIT
+    int getShortestTime(const int& start_loc, const int& end_loc);
     string verifySchedule(const string& student_id);
 
 };

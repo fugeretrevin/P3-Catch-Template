@@ -97,101 +97,178 @@ bool CampusCompass::ParseCommand(const string &command) {
 
     stringstream ss(command);
     ss >> cmd; // first word before space
-
+    if (cmd.empty()) {
+        return false;
+    }
+    vector<string> args;
+    string word;
+    while (ss >> word) {
+        args.push_back(word);
+    }
     if (cmd == "insert") {
-
-        string name;
-        string student_id;
-        string residence_id;
-        ss >> name;
-        ss >> student_id;
-        ss >> residence_id;
-        if (name.empty() || student_id.empty() || residence_id.empty()) {
+        int min_args = 4;
+        if (args.size() < min_args) {
             return false;
         }
-        string classcode;
+        string name = args[0];
+        string student_id = args[1];
+        int residence_id = 0;
+        try {
+            int residence_id = stoi(args[2]);
+        }
+        catch (...) {
+            cerr << "Invalid Residence ID";
+            return false;
+        }
         vector<CampusCompass::Class> student_classes;
-        while (ss >> classcode) {
+
+        for (int i = 0; i < args.size(); i++) {
+            string classcode = args[i];
             auto iter_find = this->classes.find(classcode);
             if (iter_find == this->classes.end()) {
+                cerr << "Class code not found";
                 return false;
             }
             student_classes.push_back(iter_find->second);
         }
-        insert(name, student_id, stoi(residence_id), student_classes);
+        insert(name, student_id, residence_id, student_classes);
 
         //insert
     } 
     else if (cmd == "remove") {
-        string student_id;
-        ss >> student_id;
+        int required_args = 1;
+        if (args.size() != required_args) {
+            cerr << "requires 1 argument";
+            return false;
+        }
+        string student_id = args[0];
         remove(student_id);
         //remove
     } 
     else if (cmd == "dropClass") {
-        string student_id;
-        string classcode;
-        ss >> student_id;
-        ss >> classcode;
+        int required_args = 2;
+        if (args.size() != required_args) {
+            cerr << "requires 2 arguments";
+            return false;
+        }
+        string student_id = args[0];
+        string classcode = args[1];
         dropClass(student_id, classcode);
         //drop class
     } 
     else if (cmd == "replaceClass") {
-        string student_id;
-        string classcode1;
-        string classcode2;
-        ss >> student_id;
-        ss >> classcode1;
-        ss >> classcode2;
+        int required_args = 3;
+        if (args.size() != required_args) {
+            cerr << "requires 3 arguments";
+            return false;
+        }
+        string student_id = args[0];
+        string classcode1 = args[1];
+        string classcode2 = args[2];
+       
 
         replaceClass(student_id, classcode1, classcode2);
 
         
     }
      else if (cmd == "removeClass") {
-        string classcode;
-        ss >> classcode;
+          int required_args = 1;
+        if (args.size() != required_args) {
+            cerr << "requires 1 argument";
+            return false;
+        }
+        string classcode = args[0];
+   
         removeClass(classcode);
 
 
     }
      else if (cmd == "toggleEdgesClosure") {
-        string location_id;
-        vector<int> ids;
-        while (ss >> location_id) {
-            ids.push_back(stoi(location_id));
+        int min_args = 2;
+        if (args.size() <= min_args || args.size()%2 != 0) {
+            cerr << "requires at least 2 arguments and pairs of ids";
+            return false;
         }
-        toggleEdgesClosure(ids);
-
+        vector<int> ids;
+        try {
+            for (string& arg : args) {
+                ids.push_back(stoi(arg));
+            }
+            return toggleEdgesClosure(ids);
+        }
+        catch (...) {
+            cerr << "Invalid ints for ids";
+            return false;
+        }
+        
     }
      else if (cmd == "checkEdgeStatus") {
-        string location_id_x;
-        string location_id_y;
-        ss >> location_id_x;
-        ss >> location_id_y;
-        checkEdgeStatus(stoi(location_id_x), stoi(location_id_y));
+        int required_args = 2;
+        if (args.size() != required_args) {
+            cerr << "requires 2 arguments";
+            return false;
+        }
+        string location_id_x = args[0];
+        string location_id_y = args[1];
+        try {
+            int int_loc_x = stoi(location_id_x);
+            int int_loc_y = stoi(location_id_y);
+
+            checkEdgeStatus(int_loc_x, int_loc_y);
+
+        }
+        catch (...) {
+            cerr << "invalid int ids";
+            return false;
+        }
+        
     }
      else if (cmd == "isConnected") {
-        string location_id_x;
-        string location_id_y;
-        ss >> location_id_x;
-        ss >> location_id_y;
+        int required_args = 2;
+        if (args.size() != required_args) {
+            cerr << "requires 2 arguments";
+            return false;
+        }
+        string location_id_x = args[0];
+        string location_id_y = args[1];
+        try {
+            int int_loc_x = stoi(location_id_x);
+            int int_loc_y = stoi(location_id_y);
+
         isConnected(stoi(location_id_x), stoi(location_id_y));
+
+        }
+        catch (...) {
+            cerr << "invalid int ids";
+            return false;
+        }
     }
     else if (cmd == "printShortestEdges") {
-         string student_id;
-        ss >> student_id;
+        int required_args = 1;
+        if (args.size() != required_args) {
+            cerr << "requires 1 argument";
+            return false;
+        }
+         string student_id = args[0];
         printShortestEdges(student_id);
 
     }
     else if (cmd == "printStudentZone") {
-        string student_id;
-        ss >> student_id;
+        int required_args = 1;
+        if (args.size() != required_args) {
+            cerr << "requires 1 argument";
+            return false;
+        }
+         string student_id = args[0];
         printStudentZone(student_id);
     }
     else if (cmd == "verifySchedule") {
-        string student_id;
-        ss >> student_id;
+        int required_args = 1;
+        if (args.size() != required_args) {
+            cerr << "requires 1 argument";
+            return false;
+        }
+         string student_id = args[0];
         verifySchedule(student_id);
     }
     else {

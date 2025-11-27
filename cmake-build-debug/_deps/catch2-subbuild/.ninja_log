@@ -1,0 +1,21 @@
+# ninja log v6
+4	178	7859648851973102	catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-mkdir	a02a57bd181542a4
+4	178	7859648851973102	C:/Users/stoof/source/repos/P3-Catch-Template/cmake-build-debug/_deps/catch2-subbuild/catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-mkdir	a02a57bd181542a4
+179	22713	7859649077319927	catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-download	a1091f76e1c7a01b
+179	22713	7859649077319927	C:/Users/stoof/source/repos/P3-Catch-Template/cmake-build-debug/_deps/catch2-subbuild/catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-download	a1091f76e1c7a01b
+22715	23019	7859649077442482	catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-update	2b3039ccc79d9749
+22715	23019	7859649077442482	C:/Users/stoof/source/repos/P3-Catch-Template/cmake-build-debug/_deps/catch2-subbuild/catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-update	2b3039ccc79d9749
+23019	23114	7859649081346244	catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-patch	35a4a2b653082928
+23019	23114	7859649081346244	C:/Users/stoof/source/repos/P3-Catch-Template/cmake-build-debug/_deps/catch2-subbuild/catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-patch	35a4a2b653082928
+23115	23259	7859649082750952	catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-configure	2ac95a5316c6b151
+23115	23259	7859649082750952	C:/Users/stoof/source/repos/P3-Catch-Template/cmake-build-debug/_deps/catch2-subbuild/catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-configure	2ac95a5316c6b151
+23260	23383	7859649084025087	catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-build	268a485af993a9bf
+23260	23383	7859649084025087	C:/Users/stoof/source/repos/P3-Catch-Template/cmake-build-debug/_deps/catch2-subbuild/catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-build	268a485af993a9bf
+23384	23500	7859649085171205	catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-install	1166388383e0b0e5
+23384	23500	7859649085171205	C:/Users/stoof/source/repos/P3-Catch-Template/cmake-build-debug/_deps/catch2-subbuild/catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-install	1166388383e0b0e5
+23500	23603	7859649086246135	catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-test	d6404e3dfb323a3e
+23500	23603	7859649086246135	C:/Users/stoof/source/repos/P3-Catch-Template/cmake-build-debug/_deps/catch2-subbuild/catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-test	d6404e3dfb323a3e
+23604	23735	7859649087564858	CMakeFiles/catch2-populate-complete	1e83b6423c249098
+23604	23735	7859649087564858	catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-done	1e83b6423c249098
+23604	23735	7859649087564858	C:/Users/stoof/source/repos/P3-Catch-Template/cmake-build-debug/_deps/catch2-subbuild/CMakeFiles/catch2-populate-complete	1e83b6423c249098
+23604	23735	7859649087564858	C:/Users/stoof/source/repos/P3-Catch-Template/cmake-build-debug/_deps/catch2-subbuild/catch2-populate-prefix/src/catch2-populate-stamp/catch2-populate-done	1e83b6423c249098

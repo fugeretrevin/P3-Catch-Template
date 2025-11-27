@@ -10,8 +10,6 @@ using namespace std;
 
 class CampusCompass {
 private:
-    // Think about what member variables you need to initialize
-    // perhaps some graph representation?
 
     // map<from id, vector<pair<to id, weight>>>
     map<int, vector<pair<int, int>>> graph;
@@ -22,6 +20,8 @@ private:
     struct Class {
         string class_code;
         int location_id;
+        Class() : class_code(""), location_id(0) {}
+
         Class(string code, int location) {
             class_code = code;
             location_id = location;
@@ -36,6 +36,8 @@ private:
         string student_id;
         int residence_location_id;
         vector<Class> classes;
+        Student() : student_name(""), student_id(""), residence_location_id(0), classes({}) {}
+
         Student(string name, string id, int residence_location_id, vector<Class> classes) {
             student_name = name;
             student_id = id;

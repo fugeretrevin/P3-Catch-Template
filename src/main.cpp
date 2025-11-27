@@ -16,7 +16,7 @@ int main() {
     string command;
     cin >> no_of_lines;
     cin.ignore(); // ignore newline that first cin left over
-    for (int i = 0; i < no_of_lines; i++) {
+    for (auto i = 0; i < no_of_lines; i++) {
         getline(cin, command);
 
         // parse your commands however you see fit

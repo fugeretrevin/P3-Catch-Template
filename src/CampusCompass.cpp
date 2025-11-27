@@ -107,7 +107,7 @@ bool CampusCompass::ParseCommand(const string &command) {
         args.push_back(word);
     }
     if (cmd == "insert") {
-        int min_args = 5;
+        size_t min_args = 5;
         if (args.size() < min_args) {
             return false;
         }
@@ -124,7 +124,7 @@ bool CampusCompass::ParseCommand(const string &command) {
             return false;
         }
         try {
-            int numClasses = stoi(args[3]);
+            numClasses = stoi(args[3]);
         }
         catch (...) {
             cerr << "Invalid num classes";
@@ -146,7 +146,7 @@ bool CampusCompass::ParseCommand(const string &command) {
         //insert
     } 
     else if (cmd == "remove") {
-        int required_args = 1;
+        size_t required_args = 1;
         if (args.size() != required_args) {
             cerr << "requires 1 argument";
             return false;
@@ -156,7 +156,7 @@ bool CampusCompass::ParseCommand(const string &command) {
         //remove
     } 
     else if (cmd == "dropClass") {
-        int required_args = 2;
+        size_t required_args = 2;
         if (args.size() != required_args) {
             cerr << "requires 2 arguments";
             return false;
@@ -167,7 +167,7 @@ bool CampusCompass::ParseCommand(const string &command) {
         //drop class
     } 
     else if (cmd == "replaceClass") {
-        int required_args = 3;
+        size_t required_args = 3;
         if (args.size() != required_args) {
             cerr << "requires 3 arguments";
             return false;
@@ -182,7 +182,7 @@ bool CampusCompass::ParseCommand(const string &command) {
         
     }
      else if (cmd == "removeClass") {
-          int required_args = 1;
+          size_t required_args = 1;
         if (args.size() != required_args) {
             cerr << "requires 1 argument";
             return false;
@@ -194,7 +194,7 @@ bool CampusCompass::ParseCommand(const string &command) {
 
     }
      else if (cmd == "toggleEdgesClosure") {
-        int min_args = 2;
+        size_t min_args = 2;
         if (args.size() <= min_args || args.size()%2 != 0) {
             cerr << "requires at least 2 arguments and pairs of ids";
             return false;
@@ -213,16 +213,18 @@ bool CampusCompass::ParseCommand(const string &command) {
         
     }
      else if (cmd == "checkEdgeStatus") {
-        int required_args = 2;
+        size_t required_args = 2;
         if (args.size() != required_args) {
             cerr << "requires 2 arguments";
             return false;
         }
         string location_id_x = args[0];
         string location_id_y = args[1];
+         int int_loc_x = 0;
+         int int_loc_y = 0;
         try {
-            int int_loc_x = stoi(location_id_x);
-            int int_loc_y = stoi(location_id_y);
+             int_loc_x = stoi(location_id_x);
+             int_loc_y = stoi(location_id_y);
 
             checkEdgeStatus(int_loc_x, int_loc_y);
 
@@ -234,19 +236,20 @@ bool CampusCompass::ParseCommand(const string &command) {
         
     }
      else if (cmd == "isConnected") {
-        int required_args = 2;
+        size_t required_args = 2;
         if (args.size() != required_args) {
             cerr << "requires 2 arguments";
             return false;
         }
         string location_id_x = args[0];
         string location_id_y = args[1];
+         int int_loc_x;
+         int int_loc_y ;
         try {
-            int int_loc_x = stoi(location_id_x);
-            int int_loc_y = stoi(location_id_y);
+             int_loc_x = stoi(location_id_x);
+             int_loc_y = stoi(location_id_y);
 
-        isConnected(stoi(location_id_x), stoi(location_id_y));
-
+             isConnected(int_loc_x, int_loc_y);
         }
         catch (...) {
             cerr << "invalid int ids";
@@ -254,7 +257,7 @@ bool CampusCompass::ParseCommand(const string &command) {
         }
     }
     else if (cmd == "printShortestEdges") {
-        int required_args = 1;
+        size_t required_args = 1;
         if (args.size() != required_args) {
             cerr << "requires 1 argument";
             return false;
@@ -264,7 +267,7 @@ bool CampusCompass::ParseCommand(const string &command) {
 
     }
     else if (cmd == "printStudentZone") {
-        int required_args = 1;
+        size_t required_args = 1;
         if (args.size() != required_args) {
             cerr << "requires 1 argument";
             return false;
@@ -273,7 +276,7 @@ bool CampusCompass::ParseCommand(const string &command) {
         printStudentZone(student_id);
     }
     else if (cmd == "verifySchedule") {
-        int required_args = 1;
+        size_t required_args = 1;
         if (args.size() != required_args) {
             cerr << "requires 1 argument";
             return false;
@@ -332,7 +335,7 @@ if (iter_find == classes.end()) {
     return false;
 }
 int replacement_id = iter_find->second.location_id;
-for(int i = 0; i < stu->classes.size(); i++) {
+for(size_t i = 0; i < stu->classes.size(); i++) {
     if (stu->classes[i].class_code == classcode_1) {
         stu->classes[i].class_code = classcode_2;
         stu->classes[i].location_id = replacement_id;
@@ -347,7 +350,7 @@ int CampusCompass::removeClass(const string &classcode)
     classes.erase(classcode);
     int students_affected = 0;
     for (auto& s : students) {
-        for (int i = 0; i < s.second.classes.size(); i++) {
+        for (size_t i = 0; i < s.second.classes.size(); i++) {
             if (s.second.classes[i].class_code == classcode) {
                 s.second.classes.erase(s.second.classes.begin() + i);
                 students_affected++;
@@ -364,7 +367,7 @@ bool CampusCompass::toggleEdgesClosure(const vector<int> edges)
     if (edges.size() %2 != 0) {
         return false;
     }
-    for(int i = 0; i < edges.size() - 1; i+=2) {
+    for(size_t i = 0; i < edges.size() - 1; i+=2) {
         if (closed_edges.count(make_pair(edges[i], edges[i+1])) == 0) {
             closed_edges.insert(make_pair(edges[i], edges[i+1]));
         }
@@ -637,9 +640,8 @@ string CampusCompass::verifySchedule(const string &student_id)
         int max_commute = 15;
         string result = "Schedule Check for" + stu->student_name;
 
-        bool verified = true;
 
-        for (int i = 0; i < schedule.size() - 1; i++) {
+        for (size_t i = 0; i < schedule.size() - 1; i++) {
             int start_loc = schedule[i].location_id;
             int end_loc = schedule[i+1].location_id;
             string trip_desc = schedule[i].class_code + " - " + schedule[i+1].class_code;

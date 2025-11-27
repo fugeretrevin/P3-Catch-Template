@@ -5,11 +5,16 @@
 #include "CampusCompass.h"
 
 using namespace std;
+/*Submit a file containing the following five tests using the Catch Framework:
 
+Test at least five incorrect commands. Ex: insert "A11y" 45679999 1 1 COP3530 [1 points]
+Test at least three edge cases for various functions. Ex: removing a student that doesn’t exist [1 points]
+Test your dropClass, removeClass, remove, and replaceClass commands [1 point]
+Test your printShortestEdges command in a case where a student can reach a class, then one or more edges turn off, and then they cannot reach that class. (Hint: the visualizer tool can help with this a lot). [2 points]*/
 // the syntax for defining a test is below. It is important for the name to be
 // unique, but you can group multiple tests with [tags]. A test can have
 // [multiple][tags] using that syntax.
-TEST_CASE("Example Test Name - Change me!", "[tag]") {
+TEST_CASE("Shortest Edges Case", "test") {
   // instantiate any class members that you need to test here
   int one = 1;
 
@@ -21,16 +26,61 @@ TEST_CASE("Example Test Name - Change me!", "[tag]") {
   REQUIRE(false); // also fix me!
 }
 
-TEST_CASE("Test 2", "[tag]") {
+TEST_CASE("Incorrect Commands", "test") {
   // you can also use "sections" to share setup code between tests, for example:
   int one = 1;
 
-  SECTION("num is 2") {
+  SECTION("Incorrect Insert Name") {
     int num = one + 1;
     REQUIRE(num == 2);
   };
 
-  SECTION("num is 3") {
+  SECTION("Incorrect Insert ID") {
+    int num = one + 2;
+    REQUIRE(num == 3);
+  };
+
+  // each section runs the setup code independently to ensure that they don't
+  // affect each other
+}
+
+TEST_CASE("Edge Cases", "test") {
+  // you can also use "sections" to share setup code between tests, for example:
+  int one = 1;
+
+  SECTION("Remove nonexistent student") {
+    int num = one + 1;
+    REQUIRE(num == 2);
+  };
+
+  SECTION("Incorrect Insert ID") {
+    int num = one + 2;
+    REQUIRE(num == 3);
+  };
+
+  // each section runs the setup code independently to ensure that they don't
+  // affect each other
+}
+TEST_CASE("Function Tests", "test") {
+  // you can also use "sections" to share setup code between tests, for example:
+  int one = 1;
+
+  SECTION("Drop Class") {
+    int num = one + 1;
+    REQUIRE(num == 2);
+  };
+
+  SECTION("Remove Class") {
+    int num = one + 2;
+    REQUIRE(num == 3);
+  };
+
+  SECTION("Remove") {
+    int num = one + 2;
+    REQUIRE(num == 3);
+  };
+
+  SECTION("Replace Class") {
     int num = one + 2;
     REQUIRE(num == 3);
   };

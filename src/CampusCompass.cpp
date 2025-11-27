@@ -45,6 +45,7 @@ bool CampusCompass::ParseCSV(const string &edges_filepath, const string &classes
         getline(ss, elem, ','); // skip the names
         getline(ss, weight, ',');
         graph[stoi(from)].push_back(make_pair(stoi(to), stoi(weight)));
+        graph[stoi(to)].push_back(make_pair(stoi(from), stoi(weight)));
 
         } catch (...) {
           continue;
@@ -114,7 +115,7 @@ bool CampusCompass::ParseCommand(const string &command) {
         string student_id = args[1];
         int residence_id = 0;
         try {
-            int residence_id = stoi(args[2]);
+            residence_id = stoi(args[2]);
         }
         catch (...) {
             cerr << "Invalid Residence ID";
@@ -122,7 +123,7 @@ bool CampusCompass::ParseCommand(const string &command) {
         }
         vector<CampusCompass::Class> student_classes;
 
-        for (int i = 0; i < args.size(); i++) {
+        for (int i = 3; i < args.size(); i++) {
             string classcode = args[i];
             auto iter_find = this->classes.find(classcode);
             if (iter_find == this->classes.end()) {

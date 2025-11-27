@@ -107,13 +107,15 @@ bool CampusCompass::ParseCommand(const string &command) {
         args.push_back(word);
     }
     if (cmd == "insert") {
-        int min_args = 4;
+        int min_args = 5;
         if (args.size() < min_args) {
             return false;
         }
         string name = args[0];
         string student_id = args[1];
         int residence_id = 0;
+        int numClasses = 0;
+
         try {
             residence_id = stoi(args[2]);
         }
@@ -121,9 +123,16 @@ bool CampusCompass::ParseCommand(const string &command) {
             cerr << "Invalid Residence ID";
             return false;
         }
+        try {
+            int numClasses = stoi(args[3]);
+        }
+        catch (...) {
+            cerr << "Invalid num classes";
+            return false;
+        }
         vector<CampusCompass::Class> student_classes;
 
-        for (int i = 3; i < args.size(); i++) {
+        for (int i = 3; i < numClasses + 3; i++) {
             string classcode = args[i];
             auto iter_find = this->classes.find(classcode);
             if (iter_find == this->classes.end()) {

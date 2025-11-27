@@ -27,35 +27,53 @@ TEST_CASE("Shortest Edges Case", "test") {
 }
 
 TEST_CASE("Incorrect Commands", "test") {
-  // you can also use "sections" to share setup code between tests, for example:
-  int one = 1;
+  CampusCompass c;
 
   SECTION("Incorrect Insert Name") {
-    int num = one + 1;
-    REQUIRE(num == 2);
+  string input = R"(insert "Stud3nt" 10000001 1 1 COP3502)";
+  bool expectedOutput = false;
+  bool actualOutput = c.parseCommand(input);
+  REQUIRE(actualOutput == expectedOutput);
   };
 
   SECTION("Incorrect Insert ID") {
-    int num = one + 2;
-    REQUIRE(num == 3);
-  };
+  string input = R"(insert "Student" 100000001 1 1 COP3502)"; //Too long
+  string input2 = R"(insert "Student" 1000d001 1 1 COP3502)"; //Has letter
 
-  // each section runs the setup code independently to ensure that they don't
-  // affect each other
+  bool expectedOutput = false;
+  bool actualOutput1 = c.parseCommand(input);
+  bool actualOutput2 = c.parseCommand(input2);
+
+  REQUIRE(actualOutput1 == expectedOutput);
+  REQUIRE(actualOutput2 == expectedOutput);
+
+  };
 }
 
 TEST_CASE("Edge Cases", "test") {
-  // you can also use "sections" to share setup code between tests, for example:
-  int one = 1;
+  CampusCompass c;
 
   SECTION("Remove nonexistent student") {
-    int num = one + 1;
-    REQUIRE(num == 2);
+    string input = R"(remove 10000001)"; //nonexistent student
+
+    bool actualOutput c.parseCommand(input);
+    bool expectedOutput = false;
+    REQUIRE(actualOutput == expectedOutput);
   };
 
-  SECTION("Incorrect Insert ID") {
-    int num = one + 2;
-    REQUIRE(num == 3);
+  SECTION("Remove nonexistent class") {
+    string input = R"(remove COP4622)"; //nonexistent class
+
+    bool actualOutput c.parseCommand(input);
+    bool expectedOutput = false;
+    REQUIRE(actualOutput == expectedOutput);
+  };
+    SECTION("isConnected with incorrect ID") {
+    string input = R"(isConnected 901 100)"; //nonexistent location ids
+
+    bool actualOutput c.parseCommand(input);
+    bool expectedOutput = false;
+    REQUIRE(actualOutput == expectedOutput);
   };
 
   // each section runs the setup code independently to ensure that they don't
@@ -63,26 +81,31 @@ TEST_CASE("Edge Cases", "test") {
 }
 TEST_CASE("Function Tests", "test") {
   // you can also use "sections" to share setup code between tests, for example:
-  int one = 1;
+  CampusCompass c;
+  c.parseCommand(R"(insert "Student1" 10000001 1 3 COP3502 MAC2311 CNT4007)"); //create student
+  c.parseCommand(R"(insert "Student2" 10000002 1 3 COP3502 MAC2311 CNT4007)"); //create student
+
 
   SECTION("Drop Class") {
-    int num = one + 1;
-    REQUIRE(num == 2);
+    bool actualOutput =   c.parseCommand(R"(dropClass 10000001 MAC2311)"); 
+    REQUIRE(actualOutput == true);
   };
 
   SECTION("Remove Class") {
-    int num = one + 2;
-    REQUIRE(num == 3);
+   bool actualOutput =   c.parseCommand(R"(removeClass COP3502)"); 
+    REQUIRE(actualOutput == true);
   };
 
   SECTION("Remove") {
-    int num = one + 2;
-    REQUIRE(num == 3);
+    bool actualOutput =   c.parseCommand(R"(removeStudent 10000001)"); 
+
+    REQUIRE(actualOutput == true);
   };
 
   SECTION("Replace Class") {
-    int num = one + 2;
-    REQUIRE(num == 3);
+    bool actualOutput =   c.parseCommand(R"(replaceClass 10000001 CNT4007 MAC2312)"); 
+
+    REQUIRE(actualOutput == true);
   };
 
   // each section runs the setup code independently to ensure that they don't

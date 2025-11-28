@@ -143,7 +143,7 @@ bool CampusCompass::ParseCommand(const string &command) {
         }
         insert(name, student_id, residence_id, student_classes);
 
-        //insert
+
     } 
     else if (cmd == "remove") {
         size_t required_args = 1;
@@ -297,6 +297,7 @@ bool CampusCompass::insert(const string &student_name, const string &student_id,
 {
     Student new_student(student_name, student_id, residence_location_id, student_classes);
     students[student_id] = new_student;
+    cout << students[student_id].student_name;
     return true;
 }
 

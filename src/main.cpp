@@ -9,7 +9,7 @@ int main() {
     CampusCompass compass;
 
     // ingest CSV data
-    cout << compass.ParseCSV("../data/edges.csv", "../data/classes.csv");
+    compass.ParseCSV("../data/edges.csv", "../data/classes.csv");
 
     // the below is example code for parsing commandline input
     int no_of_lines;
@@ -20,6 +20,9 @@ int main() {
         getline(cin, command);
 
         // parse your commands however you see fit
-        cout << compass.ParseCommand(command);
+        if (!compass.ParseCommand(command)) {
+            cout << "unsuccessful" << endl;
+        }
+
     }
 }

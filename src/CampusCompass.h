@@ -20,16 +20,26 @@ private:
     struct Class {
         string class_code;
         int location_id;
+        string start_time;
+        string end_time;
         Class() : class_code(""), location_id(0) {}
 
         Class(string code, int location) {
             class_code = code;
             location_id = location;
         }
+
+        Class(const string & code, int location, const std::string & start, const std::string & end) {
+            class_code = code;
+            location_id = location;
+            start_time = start;
+            end_time = end;
+        }
+
         bool operator<(const Class& other) const {
                 return class_code < other.class_code;
             }
-        
+
     };
     struct Student {
         string student_name;

@@ -70,12 +70,17 @@ bool CampusCompass::ParseCSV(const string &edges_filepath, const string &classes
         string elem;  //for skipping
         string classcode;
         string location;
+            string start_time;
+            string end_time;
 
 
         getline(ss, classcode, ','); // read to the next comma and skip it
         
         getline(ss, location, ',');
-        Class new_class(classcode, stoi(location));
+            getline(ss, start_time, ','); // read to the next comma and skip it
+            getline(ss, end_time, ','); // read to the next comma and skip it
+
+        Class new_class(classcode, stoi(location), start_time, end_time);
         classes[classcode] = new_class;
 
         } catch (...) {
@@ -371,9 +376,13 @@ bool CampusCompass::toggleEdgesClosure(const vector<int> edges)
     for(size_t i = 0; i < edges.size() - 1; i+=2) {
         if (closed_edges.count(make_pair(edges[i], edges[i+1])) == 0) {
             closed_edges.insert(make_pair(edges[i], edges[i+1]));
+            closed_edges.insert(make_pair(edges[i+1], edges[i]));
+
         }
         else {
             closed_edges.erase(make_pair(edges[i], edges[i+1]));
+            closed_edges.erase(make_pair(edges[i+1], edges[i]));
+
         }
     }
 
@@ -488,7 +497,7 @@ string CampusCompass::printShortestEdges(const string &student_id)
             time = dist[loc];
         }
         if (time == INT_MAX) {
-        result += c.class_code + "| Unreachable" + "\n";
+        result += c.class_code + "| Total Time: -1" + "\n";
         }
         else {
         result += c.class_code + "| Total Time:" + to_string(time) + "\n";
@@ -562,7 +571,7 @@ string CampusCompass::printStudentZone(const string &student_id)
         return "Student Zone Cost For" + stu->student_name + ": disconnected";
 
     }
-        string result = "Student Zone Cost For" + stu->student_name + ":" + to_string(total_weight);
+        string result = "Student Zone Cost For" + stu->student_name + ": " + to_string(total_weight);
     return result;
 
     //MST, Prims
@@ -629,6 +638,31 @@ int CampusCompass::getShortestTime(const int &start_loc, const int &end_loc)
 }
 
 // EXTRA CREDIT
+int getTimeGap(const string& start_next, const string& end_curr) {
+    //00:00
+    if (start_next == end_curr) {
+        return 0;
+    }
+    int hours = 0;
+    int minutes = 0;
+    for (int i = 0; i < 24; i++) {
+        if (stoi(end_curr.substr(0,2)) == i) {
+            if (stoi(start_next.substr(0,2)) >=i ) {
+                for (int j = i; j < stoi(start_next.substr(0,2)); j++) {
+                    hours = j-i;
+                    for (int k = 0; k < 60; k++) {
+                        if (stoi(end_curr.substr(j,1)) == k) {
+                            minutes = k+1;
+                        }
+
+                    }
+                }
+            }
+        }
+    }
+    return (hours*60) + minutes;
+}
+
 string CampusCompass::verifySchedule(const string &student_id)
 {
     Student* stu = findStudentById(student_id);
@@ -643,15 +677,21 @@ string CampusCompass::verifySchedule(const string &student_id)
 
 
         for (size_t i = 0; i < schedule.size() - 1; i++) {
+
             int start_loc = schedule[i].location_id;
             int end_loc = schedule[i+1].location_id;
             string trip_desc = schedule[i].class_code + " - " + schedule[i+1].class_code;
             string status_message;
             int travel_time = getShortestTime(start_loc, end_loc);
+
+
+            string start_next = schedule[i+1].start_time;
+            string end_curr = schedule[i].end_time;
+            int time_gap = getTimeGap(start_next, end_curr);
             if (travel_time == INT_MAX) {
                 status_message = "Unreachable";
             }
-            else if (travel_time <= max_commute) {
+            else if (travel_time <= time_gap) {
                 status_message = "Can make it!";
             }
             else {

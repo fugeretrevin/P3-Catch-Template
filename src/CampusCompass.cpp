@@ -103,7 +103,7 @@ bool CampusCompass::ParseCommand(const string &command) {
 
 
 
-    string cmd; //get first line
+    string cmd;
 
     stringstream ss(command);
     ss >> cmd; // first word before space
@@ -111,10 +111,35 @@ bool CampusCompass::ParseCommand(const string &command) {
         return false;
     }
     vector<string> args;
-    string word;
-    while (ss >> word) {
-        args.push_back(word);
+    string curr_arg;
+    bool in_quotes = false;
+    size_t pos = command.find(cmd);
+    if (pos != string::npos) {
+        pos += cmd.length();
+        while (pos < command.length() && isspace(command[pos])) {
+            pos++;
+        }
     }
+    for (size_t i = pos; i < command.length(); i++) {
+        char c = command[i];
+        if (c == '"') {
+            in_quotes = !in_quotes;
+            curr_arg += c;
+        }
+        else if (isspace(c) && !in_quotes) {
+            if (!curr_arg.empty()) {
+                args.push_back(curr_arg);
+                curr_arg.clear();
+            }
+        }
+        else {
+            curr_arg += c;
+        }
+    }
+    if (!curr_arg.empty()) {
+        args.push_back(curr_arg);
+    }
+
     if (cmd == "insert") {
         size_t min_args = 5;
         if (args.size() < min_args) {
@@ -124,7 +149,7 @@ bool CampusCompass::ParseCommand(const string &command) {
         string name = args[0];
         if (name.size() >= 2 && name.front() == '"' && name.back() == '"') {
             name = name.substr(1, name.size() - 2);
-            regex name_regex("^[A-Za-z]+$");
+            regex name_regex("^[A-Za-z ]+$");
             if (!regex_match(name, name_regex)) {
                 cout << "unsuccessful" << endl;
                 return false;
@@ -227,23 +252,31 @@ bool CampusCompass::ParseCommand(const string &command) {
     }
      else if (cmd == "toggleEdgesClosure") {
         size_t min_args = 2;
-        if (args.size() < min_args || args.size()%2 != 0) {
-            cerr << "requires at least 2 arguments and pairs of ids";
+        if (args.empty()) {
             return false;
         }
-        vector<int> ids;
-        try {
-            for (string& arg : args) {
-                ids.push_back(stoi(arg));
+         int count = 0;
+            try {
+                count = stoi(args[0]);
             }
-            return toggleEdgesClosure(ids);
-        }
-        catch (...) {
-            cerr << "Invalid ints for ids";
-            return false;
+            catch (...) {
+                return false;
+            }
+            if (args.size() != (1+2*count)) {
+                return false;
+            }
+            vector<int> ids;
+            try {
+                for (size_t i = 0; i < args.size(); i++) {
+                    ids.push_back(stoi(args[i]));
+                }
+                return toggleEdgesClosure(ids);
+            }
+            catch (...) {
+                return false;
+            }
         }
 
-    }
      else if (cmd == "checkEdgeStatus") {
         size_t required_args = 2;
         if (args.size() != required_args) {
@@ -257,7 +290,7 @@ bool CampusCompass::ParseCommand(const string &command) {
         try {
              int_loc_x = stoi(location_id_x);
              int_loc_y = stoi(location_id_y);
-            checkEdgeStatus(int_loc_x, int_loc_y);
+            cout << checkEdgeStatus(int_loc_x, int_loc_y) << endl;
 
         }
         catch (...) {
@@ -280,7 +313,12 @@ bool CampusCompass::ParseCommand(const string &command) {
              int_loc_x = stoi(location_id_x);
              int_loc_y = stoi(location_id_y);
 
-             return isConnected(int_loc_x, int_loc_y);
+             if (isConnected(int_loc_x, int_loc_y)) {
+                 cout << "successful" << endl;
+             }
+            else {
+                cout << "unsuccessful" << endl;
+            }
         }
         catch (...) {
             cerr << "invalid int ids";
@@ -435,13 +473,12 @@ string CampusCompass::checkEdgeStatus(const int &location_id_x, const int &locat
             status = "DNE";
         }
          else if (closed_edges.count(make_pair(location_id_x, location_id_y)) == 0) {
-            status = "Open";
+            status = "open";
          }
          else {
 
-            status = "Closed";
+            status = "closed";
          }
-
     return status;
 }
 

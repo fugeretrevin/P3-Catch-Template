@@ -7,6 +7,7 @@
 #include <queue>
 #include <algorithm>
 #include <climits>
+#include <regex>
 using namespace std;
 
 CampusCompass::CampusCompass() {
@@ -120,12 +121,23 @@ bool CampusCompass::ParseCommand(const string &command) {
         string name = args[0];
         if (name.size() >= 2 && name.front() == '"' && name.back() == '"') {
             name = name.substr(1, name.size() - 2);
+            regex name_regex("^[A-Za-z ]+$");
+            if (!regex_match(name, name_regex)) {
+                cout << "unsuccessful" << endl;
+                return false;
+            }
         }
         else {
             cout << "unsuccessful" << endl;
             return false;
         }
         string student_id = args[1];
+        regex id_regex("^[0-9]{8}$");
+        if (!regex_match(student_id, id_regex)) {
+            cout << "unsuccessful" << endl;
+            return false;
+        }
+
         int residence_id = 0;
         int numClasses = 0;
 
@@ -146,6 +158,10 @@ bool CampusCompass::ParseCommand(const string &command) {
         vector<CampusCompass::Class> student_classes;
 
         for (int i = 4; i < numClasses + 4; i++) {
+            if (i >= args.size()) {
+                cout << "unsuccessful";
+                return false;
+            }
             string classcode = args[i];
             auto iter_find = this->classes.find(classcode);
             if (iter_find == this->classes.end()) {

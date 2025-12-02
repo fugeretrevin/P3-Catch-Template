@@ -81,10 +81,13 @@ bool CampusCompass::ParseCSV(const string &edges_filepath, const string &classes
             getline(ss, start_time, ','); // read to the next comma and skip it
             getline(ss, end_time, ','); // read to the next comma and skip it
 
+        classcode.erase(0, classcode.find_first_not_of(" \n\r\t "));
+            classcode.erase(classcode.find_last_not_of(" \n\r\t ") + 1);
         Class new_class(classcode, stoi(location), start_time, end_time);
         classes[classcode] = new_class;
 
         } catch (...) {
+            cerr <<"skipping invalid class line" << line << endl;
           continue;
         }
     }
@@ -121,7 +124,7 @@ bool CampusCompass::ParseCommand(const string &command) {
         string name = args[0];
         if (name.size() >= 2 && name.front() == '"' && name.back() == '"') {
             name = name.substr(1, name.size() - 2);
-            regex name_regex("^[A-Za-z ]+$");
+            regex name_regex("^[A-Za-z]+$");
             if (!regex_match(name, name_regex)) {
                 cout << "unsuccessful" << endl;
                 return false;
@@ -158,14 +161,14 @@ bool CampusCompass::ParseCommand(const string &command) {
         vector<CampusCompass::Class> student_classes;
 
         for (int i = 4; i < numClasses + 4; i++) {
-            if (i >= args.size()) {
-                cout << "unsuccessful";
+            if ((size_t)i >= args.size()) {
+                cout << "unsuccessful" << endl;
                 return false;
             }
             string classcode = args[i];
             auto iter_find = this->classes.find(classcode);
             if (iter_find == this->classes.end()) {
-                cerr << "Class code not found";
+                cerr << "Class code not found" << endl;
                 return false;
             }
             student_classes.push_back(iter_find->second);
@@ -181,7 +184,7 @@ bool CampusCompass::ParseCommand(const string &command) {
             return false;
         }
         string student_id = args[0];
-        remove(student_id);
+        return remove(student_id);
         //remove
     }
     else if (cmd == "dropClass") {
@@ -192,7 +195,7 @@ bool CampusCompass::ParseCommand(const string &command) {
         }
         string student_id = args[0];
         string classcode = args[1];
-        dropClass(student_id, classcode);
+        return dropClass(student_id, classcode);
         //drop class
     }
     else if (cmd == "replaceClass") {
@@ -206,7 +209,7 @@ bool CampusCompass::ParseCommand(const string &command) {
         string classcode2 = args[2];
 
 
-        replaceClass(student_id, classcode1, classcode2);
+       return replaceClass(student_id, classcode1, classcode2);
 
 
     }
@@ -254,7 +257,6 @@ bool CampusCompass::ParseCommand(const string &command) {
         try {
              int_loc_x = stoi(location_id_x);
              int_loc_y = stoi(location_id_y);
-
             checkEdgeStatus(int_loc_x, int_loc_y);
 
         }
@@ -278,7 +280,7 @@ bool CampusCompass::ParseCommand(const string &command) {
              int_loc_x = stoi(location_id_x);
              int_loc_y = stoi(location_id_y);
 
-             isConnected(int_loc_x, int_loc_y);
+             return isConnected(int_loc_x, int_loc_y);
         }
         catch (...) {
             cerr << "invalid int ids";
@@ -326,29 +328,33 @@ bool CampusCompass::insert(const string &student_name, const string &student_id,
 {
     Student new_student(student_name, student_id, residence_location_id, student_classes);
     students[student_id] = new_student;
-    cout << "successful";
+    cout << "successful" << endl;
 
     return true;
 }
 
 bool CampusCompass::remove(const string &student_id)
 {
-    students.erase(student_id);
-    cout << "successful";
+   size_t num = students.erase(student_id);
+   if (num == 1) {
+    cout << "successful" << endl;
     return true;
+   }
+   cout << "unsuccessful" << endl;
+   return false;
 }
 
 bool CampusCompass::dropClass(const string &student_id, const string &classcode)
 {
     Student* stu = findStudentById(student_id);
     if (!stu) {
-        cerr << "Student not found";
+        cerr << "Student not found" << endl;
             return false;
         }
     for (auto it = stu->classes.begin(); it != stu->classes.end(); it++) {
         if (it->class_code == classcode) {
             stu->classes.erase(it);
-            cout << "successful";
+            cout << "successful" << endl;
             return true;
         }
     }
@@ -375,7 +381,7 @@ for(size_t i = 0; i < stu->classes.size(); i++) {
     if (stu->classes[i].class_code == classcode_1) {
         stu->classes[i].class_code = classcode_2;
         stu->classes[i].location_id = replacement_id;
-        cout << "successful";
+        cout << "successful" << endl;
         return true;
     }
 }

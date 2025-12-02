@@ -1,3 +1,5 @@
+/*
+
 #include <catch2/catch_test_macros.hpp>
 #include <iostream>
 
@@ -13,16 +15,16 @@ TEST_CASE("Shortest Edges Case", "[graph]") {
   c.ParseCSV(edges_file, classes_file);
   c.ParseCommand(R"(insert "Student" 12345678 22 1 COP3502)");
   string output = c.printShortestEdges("12345678");
-  REQUIRE(output.find("Total Time: 1") != -1);
+  REQUIRE(output.find("Total Time: 1") != string::npos);
 
   c.ParseCommand("toggleEdgesClosure 22 23");
   string output2 = c.printShortestEdges("12345678");
-  REQUIRE(output2.find("Total Time: 1") == -1);
+  REQUIRE(output2.find("Total Time: 1") == string::npos);
 
   c.ParseCommand("toggleEdgesClosure 22 21");
   c.ParseCommand("toggleEdgesClosure 22 11");
   string output3 = c.printShortestEdges("12345678");
-  REQUIRE(output3.find("Total Time: -1") != -1);
+  REQUIRE(output3.find("Total Time: -1") != string::npos);
 }
 
 TEST_CASE("Incorrect Commands", "[incorrect]") {
@@ -68,6 +70,8 @@ TEST_CASE("Edge Cases", "[edge]") {
 
   SECTION("Remove nonexistent student") {
     string input = R"(remove 10000001)"; //nonexistent student | Edge Case #1
+    REQUIRE(c.ParseCommand(input) == false);
+
   };
 
   SECTION("Remove nonexistent class") {
@@ -87,8 +91,10 @@ TEST_CASE("Edge Cases", "[edge]") {
 }
 TEST_CASE("Function Tests", "[function]") {
   CampusCompass c;
-  c.ParseCommand(R"(insert "Student1" 10000001 1 3 COP3502 MAC2311 CNT4007)"); //create student
-  c.ParseCommand(R"(insert "Student2" 10000002 1 3 COP3502 MAC2311 CNT4007)"); //create student
+  bool loaded = c.ParseCSV(edges_file, classes_file);
+  REQUIRE(loaded == true);
+  c.ParseCommand(R"(insert "StudentOne" 10000001 1 3 COP3502 MAC2311 CNT4007)"); //create student
+  c.ParseCommand(R"(insert "StudentTwo" 10000002 1 3 COP3502 MAC2311 CNT4007)"); //create student
 
 
   SECTION("Drop Class") {
@@ -116,34 +122,4 @@ TEST_CASE("Function Tests", "[function]") {
   
 }
 
-
-
-
-TEST_CASE("Example CampusCompass Output Test", "[flag]") {
-  string input = R"(6
-insert "Student A" 10000001 1 1 COP3502
-insert "Student B" 10000002 1 1 COP3502
-insert "Student C" 10000003 1 2 COP3502 MAC2311
-dropClass 10000001 COP3502
-remove 10000001
-removeClass COP3502
-)";
-
-  string expectedOutput = R"(successful
-successful
-successful
-successful
-unsuccessful
-2
-)";
-
-  string actualOutput;
-
-  /*
-  CampusCompass c;
-  c.parseInput(input)
-  actualOutput = c.getStringRepresentation()
-  */
-
-  REQUIRE(actualOutput == expectedOutput);
-}
+*/

@@ -45,6 +45,9 @@ bool CampusCompass::ParseCSV(const string &edges_filepath, const string &classes
         getline(ss, elem, ','); // skip the names
         getline(ss, elem, ','); // skip the names
         getline(ss, weight, ',');
+            if (!weight.empty() && weight.back() == '\r') {
+                weight.pop_back();
+            }
         graph[stoi(from)].push_back(make_pair(stoi(to), stoi(weight)));
         graph[stoi(to)].push_back(make_pair(stoi(from), stoi(weight)));
 
@@ -80,7 +83,9 @@ bool CampusCompass::ParseCSV(const string &edges_filepath, const string &classes
         getline(ss, location, ',');
             getline(ss, start_time, ','); // read to the next comma and skip it
             getline(ss, end_time, ','); // read to the next comma and skip it
-
+        if (!end_time.empty() && end_time.back() == '\r') {
+            end_time.pop_back();
+        }
         classcode.erase(0, classcode.find_first_not_of(" \n\r\t "));
             classcode.erase(classcode.find_last_not_of(" \n\r\t ") + 1);
         Class new_class(classcode, stoi(location), start_time, end_time);
@@ -99,31 +104,30 @@ bool CampusCompass::ParseCSV(const string &edges_filepath, const string &classes
 bool CampusCompass::ParseCommand(const string &command) {
     string cmd = command;
 
-    if(!cmd.empty() && cmd.back() == '\r') {
+    while(!cmd.empty() && (cmd.back() == '\r' || cmd.back() == '\n' || isspace(cmd.back()))) {
         cmd.pop_back();
     }
-    size_t first = command.find_first_not_of(" \t");
-    if (string::npos == first) {
+    if (cmd.empty()) {
         return true;
     }
 
+
     stringstream ss(cmd);
-    ss >> cmd; // first word before space
-    if (cmd.empty()) {
-        return false;
-    }
+    string func;
+    ss >> func; // first word before space
+
     vector<string> args;
     string curr_arg;
     bool in_quotes = false;
-    size_t pos = command.find(cmd);
+    size_t pos = cmd.find(func);
     if (pos != string::npos) {
-        pos += cmd.length();
-        while (pos < command.length() && isspace(command[pos])) {
+        pos += func.length();
+        while (pos < cmd.length() && isspace(cmd[pos])) {
             pos++;
         }
     }
-    for (size_t i = pos; i < command.length(); i++) {
-        char c = command[i];
+    for (size_t i = pos; i < cmd.length(); i++) {
+        char c = cmd[i];
         if (c == '"') {
             in_quotes = !in_quotes;
             curr_arg += c;
@@ -142,10 +146,9 @@ bool CampusCompass::ParseCommand(const string &command) {
         args.push_back(curr_arg);
     }
 
-    if (cmd == "insert") {
+    if (func == "insert") {
         size_t min_args = 5;
         if (args.size() < min_args) {
-            cout << "unsuccessful" << endl;
             return false;
         }
         string name = args[0];
@@ -153,18 +156,15 @@ bool CampusCompass::ParseCommand(const string &command) {
             name = name.substr(1, name.size() - 2);
             regex name_regex("^[A-Za-z ]+$");
             if (!regex_match(name, name_regex)) {
-                cout << "unsuccessful" << endl;
                 return false;
             }
         }
         else {
-            cout << "unsuccessful" << endl;
             return false;
         }
         string student_id = args[1];
         regex id_regex("^[0-9]{8}$");
         if (!regex_match(student_id, id_regex)) {
-            cout << "unsuccessful" << endl;
             return false;
         }
 
@@ -189,7 +189,6 @@ bool CampusCompass::ParseCommand(const string &command) {
 
         for (int i = 4; i < numClasses + 4; i++) {
             if ((size_t)i >= args.size()) {
-                cout << "unsuccessful" << endl;
                 return false;
             }
             string classcode = args[i];
@@ -201,20 +200,20 @@ bool CampusCompass::ParseCommand(const string &command) {
             student_classes.push_back(iter_find->second);
         }
         insert(name, student_id, residence_id, student_classes);
-
+        return true;
 
     }
-    else if (cmd == "remove") {
+    else if (func == "remove") {
         size_t required_args = 1;
         if (args.size() != required_args) {
-            cerr << "requires 1 argument";
             return false;
         }
         string student_id = args[0];
-        return remove(student_id);
+        remove(student_id);
+        return true;
         //remove
     }
-    else if (cmd == "dropClass") {
+    else if (func == "dropClass") {
         size_t required_args = 2;
         if (args.size() != required_args) {
             cerr << "requires 2 arguments";
@@ -222,10 +221,11 @@ bool CampusCompass::ParseCommand(const string &command) {
         }
         string student_id = args[0];
         string classcode = args[1];
-        return dropClass(student_id, classcode);
+        dropClass(student_id, classcode);
+        return true;
         //drop class
     }
-    else if (cmd == "replaceClass") {
+    else if (func == "replaceClass") {
         size_t required_args = 3;
         if (args.size() != required_args) {
             cerr << "requires 3 arguments";
@@ -236,11 +236,12 @@ bool CampusCompass::ParseCommand(const string &command) {
         string classcode2 = args[2];
 
 
-       return replaceClass(student_id, classcode1, classcode2);
+       replaceClass(student_id, classcode1, classcode2);
+        return true;
 
 
     }
-     else if (cmd == "removeClass") {
+     else if (func == "removeClass") {
           size_t required_args = 1;
         if (args.size() != required_args) {
             cerr << "requires 1 argument";
@@ -254,7 +255,7 @@ bool CampusCompass::ParseCommand(const string &command) {
 
 
     }
-     else if (cmd == "toggleEdgesClosure") {
+     else if (func == "toggleEdgesClosure") {
         size_t min_args = 2;
         if (args.size() < min_args || args.size()%2 == 0) {
             cerr << "requires at least 2 arguments and pairs of ids";
@@ -284,7 +285,7 @@ bool CampusCompass::ParseCommand(const string &command) {
                 else {
                     return false;
                 }
-                return toggled;
+                return true;
             }
             catch (...) {
                 return false;
@@ -296,7 +297,7 @@ bool CampusCompass::ParseCommand(const string &command) {
         }
 
     }
-     else if (cmd == "checkEdgeStatus") {
+     else if (func == "checkEdgeStatus") {
         size_t required_args = 2;
         if (args.size() != required_args) {
             cerr << "requires 2 arguments";
@@ -318,7 +319,7 @@ bool CampusCompass::ParseCommand(const string &command) {
         }
 
     }
-     else if (cmd == "isConnected") {
+     else if (func == "isConnected") {
         size_t required_args = 2;
         if (args.size() != required_args) {
             cerr << "requires 2 arguments";
@@ -338,13 +339,14 @@ bool CampusCompass::ParseCommand(const string &command) {
             else {
                 cout << "unsuccessful" << endl;
             }
+            return true;
         }
         catch (...) {
             cerr << "invalid int ids";
             return false;
         }
     }
-    else if (cmd == "printShortestEdges") {
+    else if (func == "printShortestEdges") {
         size_t required_args = 1;
         if (args.size() != required_args) {
             cerr << "requires 1 argument";
@@ -352,9 +354,10 @@ bool CampusCompass::ParseCommand(const string &command) {
         }
          string student_id = args[0];
         cout << printShortestEdges(student_id) << endl;
+        return true;
 
     }
-    else if (cmd == "printStudentZone") {
+    else if (func == "printStudentZone") {
         size_t required_args = 1;
         if (args.size() != required_args) {
             cerr << "requires 1 argument";
@@ -362,8 +365,10 @@ bool CampusCompass::ParseCommand(const string &command) {
         }
          string student_id = args[0];
        cout << printStudentZone(student_id) << endl;
+        return true;
+
     }
-    else if (cmd == "verifySchedule") {
+    else if (func == "verifySchedule") {
         size_t required_args = 1;
         if (args.size() != required_args) {
             cerr << "requires 1 argument";
@@ -371,6 +376,8 @@ bool CampusCompass::ParseCommand(const string &command) {
         }
          string student_id = args[0];
         cout << verifySchedule(student_id) << endl;
+        return true;
+
     }
     else {
         return false;
@@ -626,6 +633,7 @@ string CampusCompass::printStudentZone(const string &student_id)
     unordered_map<int, int> min_weight;
     set<int> in_zone;
     int total_weight = 0;
+    size_t amt_connected = 0;
     for (int l : locations) {
         min_weight[l] = INT_MAX;
     }
@@ -638,6 +646,7 @@ string CampusCompass::printStudentZone(const string &student_id)
         if (in_zone.count(u)) {
             continue;
         }
+
         if (w != min_weight[u]) {
             continue;
         }
@@ -645,25 +654,32 @@ string CampusCompass::printStudentZone(const string &student_id)
 
         in_zone.insert(u);
         total_weight += w;
-        if (in_zone.size() == locations.size()) {
-            break;
+        if (locations.count(u)) {
+            amt_connected++;
+            if (amt_connected == locations.size()) {
+                break;
+            }
         }
+
         if (graph.count(u)) {
             for (auto [v, weight] : graph.at(u)) {
-                if (locations.count(v) && !in_zone.count(v)) {
-                    if (closed_edges.count({u, v})) {
-                        continue;
-                    }
-                    if (weight < min_weight[v]) {
-                        min_weight[v] = weight;
-                        pq.push({weight, v});
-                    }
-
+                if (in_zone.count(v)) {
+                    continue;
                 }
+                if (closed_edges.count({u, v})) {
+                    continue;
+                }
+                if (!min_weight.count(v) || weight < min_weight[v]) {
+                    min_weight[v] = weight;
+                    pq.push({weight, v});
+                }
+
+
             }
         }
     }
-    if (in_zone.size() < locations.size()) {
+
+    if (amt_connected < locations.size()) {
         return "Student Zone Cost For " + stu->student_name + ": disconnected";
 
     }
